@@ -1,0 +1,96 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        body{
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <script>
+        const Canvas = document.getElementById('canvas')
+        const ctx = canvas.getContext('2d')
+
+        let screenHeight = window.innerHeight
+        let screenWidth = window.innerWidth
+
+        canvas.width = screenWidth
+        canvas.height = screenHeight
+        
+        const ImageCrew = []
+        for (let i = 0; i < 12; i++) {
+            ImageCrew[i] = new Image()
+            ImageCrew[i].src = `img/crewmatesFrame/${i}.png`
+            ImageCrew[i].style.opacity = 0.3
+        }
+
+        function Crewmates() {
+            this.width = 400
+            this.height = 200
+            this.velocity = 0
+            this.frame = 0
+            this.image = ImageCrew[this.frame]
+            
+            this.Position = {
+                X : screenWidth/2-this.width/2,
+                Y : screenHeight-this.height 
+            }
+            
+            this.Draw = () => {
+                this.frame = this.frame + 1 >= 12 ? 0 : ++this.frame 
+                this.Position.X += this.velocity
+                this.image = ImageCrew[this.frame]
+                ctx.drawImage(this.image, this.Position.X, this.Position.Y, this.width, this.height)
+            }
+        }
+        
+        const crewmates = new Crewmates()
+        
+        function Updater() {
+            ctx.clearRect(0, 0, screenWidth, screenHeight);
+            crewmates.Draw()
+        }
+        setInterval(Updater, 30)
+
+        /////////CONTROLLER - KEYBOARD EVENT HANDLER
+        let isRightPressed = false
+        let isLeftPressed = false
+
+        const controlling = (e) => {
+            if (e.which == 65 || e.which == 37){
+                //GO LEFT 
+                isLeftPressed = true
+                crewmates.velocity = -5
+            } else if (e.which == 68 || e.which == 39){
+                //GO RIGHT
+                isRightPressed = true
+                crewmates.velocity = 5
+            } 
+        }
+            
+        const uncontrolling = (e) => {
+            if (e.which == 65 || e.which == 37){
+                isLeftPressed = false
+                crewmates.velocity = isRightPressed ? 5 : 0                
+            }else if (e.which == 68 || e.which == 39){
+                isRightPressed = false
+                crewmates.velocity = isLeftPressed ? -5 : 0
+            }
+        }
+
+        document.addEventListener('keydown', controlling)
+        document.addEventListener('keyup', uncontrolling)
+        
+
+    </script>
+</body>
+</html>
