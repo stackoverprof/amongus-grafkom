@@ -26,48 +26,131 @@
 
         canvas.width = screenWidth
         canvas.height = screenHeight
-        
-        const ImageCrew = []
-        for (let i = 0; i < 26; i++) {
-            ImageCrew[i] = new Image()
-            ImageCrew[i].src = `img/crewmatesFrame/${i}.png`
-            ImageCrew[i].style.opacity = 0.3
+
+        function getFrameSet (color) {
+            const frameset = []
+            for (let i = 0; i < 26; i++) {
+                frameset[i] = new Image()
+                frameset[i].src = `img/frameset/${color}/${i}.png`
+                frameset[i].style.opacity = 0.3
+            }
+            return frameset
         }
 
-        function Crewmates() {
-            this.width = 400
-            this.height = 200
+        const ImageFrames = {
+            brown: getFrameSet('brown'),
+            gray: getFrameSet('gray'),
+            yellow: getFrameSet('yellow')
+        }
+
+        function PlayerCharacter() {
+            this.width = 145
+            this.height = 181
             this.velocity = 0
             this.frame = 0
-            this.image = ImageCrew[this.frame]
+            this.image = ImageFrames.brown[this.frame]
             
             this.Position = {
                 X : screenWidth/2-this.width/2,
-                Y : screenHeight-this.height 
+                Y : screenHeight-this.height-80 
             }
             
             this.Draw = () => {
-                // this.frame = this.frame + 1 >= 25 ? 0 : ++this.frame 
-                this.Position.X += this.velocity
-                // this.image = ImageCrew[this.frame]
+                if (!(this.Position.X + this.velocity < -42 || this.Position.X + this.velocity > screenWidth - this.width + 42)){    
+                    this.Position.X += this.velocity
+                }
+                
+                this.Position.Y = screenHeight - this.height - 80
                 
                 if (this.velocity < 0) {
                     if (this.frame < 1 || this.frame > 12) this.frame = 1
-                    this.image = ImageCrew[this.frame++]
+                    this.image = ImageFrames.brown[this.frame++]
                 } else if (this.velocity > 0) {
                     if (this.frame < 13 || this.frame > 24) this.frame = 13
-                    this.image = ImageCrew[this.frame++]
+                    this.image = ImageFrames.brown[this.frame++]
                 }
 
                 ctx.drawImage(this.image, this.Position.X, this.Position.Y, this.width, this.height)
             }
         }
+
+        function CharacterLewat(color, starting, delay = 0, lane) {
+            this.width = 145
+            this.height = 181
+            this.velocity = 5
+            this.frame = 0
+            this.turningArea = Math.random() * screenWidth*2.5 + screenWidth + this.width*2
+            this.lane = lane * 100 + 100
+
+            switch (color) {
+                case 'gray':
+                    this.image = ImageFrames.gray
+                    break               
+                case 'yellow':
+                    this.image = ImageFrames.yellow
+                    break            
+                case 'brown':
+                    this.image = ImageFrames.brown
+                    break            
+                default:
+                    this.image = ImageFrames.gray
+                    break
+            }
+            
+            this.Position = {
+                X : -this.width,
+                Y : screenHeight-this.height-this.lane
+            }
+
+            if(starting == 'left'){
+                this.velocity = 5
+                this.Position.X = -this.width
+            } else if (starting == 'right'){
+                this.velocity = -5
+                this.Position.X = screenWidth 
+            }
+            
+            this.isDelayed = true
+
+            setTimeout(() => {
+                this.isDelayed = false
+            }, delay)
+
+            this.Draw = () => {
+                if (!this.isDelayed){
+                    if (this.Position.X + this.velocity < screenWidth/2-this.turningArea/2 || this.Position.X + this.velocity > screenWidth/2 + this.turningArea/2){    
+                        this.velocity = this.velocity*-1
+                    }
+
+                    this.Position.X += this.velocity
+                    this.Position.Y = screenHeight - this.height - this.lane
+
+
+                    if (this.velocity < 0) {
+                        if (this.frame < 1 || this.frame > 12) this.frame = 1
+                    } else if (this.velocity > 0) {
+                        if (this.frame < 13 || this.frame > 24) this.frame = 13
+                    }
+
+                    ctx.drawImage(this.image[this.frame++], this.Position.X, this.Position.Y, this.width, this.height)
+                }
+            }
+        }
+
+
+
+
+
         
-        const crewmates = new Crewmates()
+        const Player = new PlayerCharacter()
+        const FigurPolisi = new CharacterLewat('gray', 'left', 1000, 0)
+        const FigurRaja = new CharacterLewat('yellow', 'right', 3500, 1)
         
         function Updater() {
-            ctx.clearRect(0, 0, screenWidth, screenHeight);
-            crewmates.Draw()
+            ctx.clearRect(0, 0, screenWidth, screenHeight)
+            FigurRaja.Draw()
+            FigurPolisi.Draw()
+            Player.Draw()
         }
         setInterval(Updater, 30)
 
@@ -79,11 +162,11 @@
             if (e.which == 65 || e.which == 37){
                 //GO LEFT 
                 isLeftPressed = true
-                crewmates.velocity = -5
+                Player.velocity = -5
             } else if (e.which == 68 || e.which == 39){
                 //GO RIGHT
                 isRightPressed = true
-                crewmates.velocity = 5
+                Player.velocity = 5
             } 
         }
             
@@ -91,24 +174,35 @@
             if (e.which == 65 || e.which == 37){
                 isLeftPressed = false
                 if (isRightPressed) {
-                    crewmates.velocity = 5
+                    Player.velocity = 5
                 } else {
-                    crewmates.velocity = 0
-                    crewmates.image = ImageCrew[0]
+                    Player.velocity = 0
+                    Player.image = ImageFrames.brown[0]
                 }               
             }else if (e.which == 68 || e.which == 39){
                 isRightPressed = false
                 if (isLeftPressed) {
-                    crewmates.velocity = -5
+                    Player.velocity = -5
                 } else {
-                    crewmates.velocity = 0
-                    crewmates.image = ImageCrew[25]
+                    Player.velocity = 0
+                    Player.image = ImageFrames.brown[25]
                 }             
             }
         }
 
         document.addEventListener('keydown', controlling)
         document.addEventListener('keyup', uncontrolling)
+
+        const reportWindowSize = () => {
+            screenWidth = window.innerWidth
+            screenHeight = window.innerHeight
+            canvas.width = screenWidth
+            canvas.height = screenHeight
+            
+            if(Player.Position.X > screenWidth-200) Player.Position.X = screenWidth-200
+        
+        }
+        window.addEventListener('resize', reportWindowSize)
         
 
     </script>
