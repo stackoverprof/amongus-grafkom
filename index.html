@@ -60,6 +60,7 @@
             this.height = 181
             this.velocity = {X: 0, Y: 0}
             this.frame = 0
+            this.lane = 0
             this.image = ImageFrames.brown[this.frame]
             
             this.Position = {
@@ -71,16 +72,30 @@
                 if (!(this.Position.X + this.velocity.X < 0 || this.Position.X + this.velocity.X > screenWidth - this.width )){    
                     this.Position.X += this.velocity.X
                 }
+
+                if (!(this.Position.Y + this.velocity.Y < 424 - this.height || this.Position.Y + this.velocity.Y > screenHeight - 109 - 27 - this.height)){    
+                    this.Position.Y += this.velocity.Y 
+                    this.lane = screenHeight - this.height - this.Position.Y - 140
+                }
                 
-                this.Position.Y = screenHeight - 140 - this.height
                 
                 if (this.velocity.X < 0) {
+                    this.image = ImageFrames.brown[this.frame++]
                     if (this.frame < 1 || this.frame > 12) this.frame = 1
-                    this.image = ImageFrames.brown[this.frame++]
                 } else if (this.velocity.X > 0) {
-                    if (this.frame < 13 || this.frame > 24) this.frame = 13
                     this.image = ImageFrames.brown[this.frame++]
+                    if (this.frame < 13 || this.frame > 24) this.frame = 13
                 }
+
+                if (this.velocity.Y != 0 && this.velocity.X == 0) {
+                    if (this.frame < 13) {
+                        this.image = ImageFrames.brown[this.frame++]
+                        if (this.frame < 1 || this.frame > 12) this.frame = 1
+                    } else {
+                        this.image = ImageFrames.brown[this.frame++]
+                        if (this.frame < 13 || this.frame > 24) this.frame = 13
+                    }
+                } 
 
                 ctx.drawImage(this.image, this.Position.X, this.Position.Y, this.width, this.height)
             }
@@ -92,7 +107,7 @@
             this.velocity = 5
             this.frame = 0
             this.turningArea = Math.random() * screenWidth*2.5 + screenWidth + this.width*2
-            this.lane = lane * (screenHeight-470-109-27) + 140
+            this.lane = lane * (screenHeight-424-109-27)
 
             switch (color) {
                 case 'gray':
@@ -111,7 +126,7 @@
             
             this.Position = {
                 X : -this.width,
-                Y : screenHeight-this.height-this.lane
+                Y : screenHeight - this.height - this.lane - 140
             }
 
             if(starting == 'left'){
@@ -132,11 +147,11 @@
                 if (!this.isDelayed){
                     if (this.Position.X + this.velocity < screenWidth/2-this.turningArea/2 || this.Position.X + this.velocity > screenWidth/2 + this.turningArea/2){    
                         this.velocity = this.velocity*-1
-                        this.lane = Math.random() * (screenHeight-470-109-27) + 140
+                        this.lane = Math.random() * (screenHeight-424-109-27)
                     }
 
                     this.Position.X += this.velocity - Player.velocity.X*2
-                    this.Position.Y = screenHeight - this.height - this.lane
+                    this.Position.Y = screenHeight - this.height - this.lane - 140
 
 
                     if (this.velocity < 0) {
@@ -220,7 +235,7 @@
         }
         
         const Player = new PlayerCharacter()
-        const FigurPolisi = new CharacterLewat('gray', 'left', 1000, 0.2)
+        const FigurPolisi = new CharacterLewat('gray', 'left', 1000, 0)
         const FigurRaja = new CharacterLewat('yellow', 'right', 3500, 1)
         const FigurWhite = new CharacterLewat('brown', 'left', 3500, 0.5)
         
@@ -253,7 +268,7 @@
         let isRightPressed = false
         let isLeftPressed = false
         let isUpPressed = false
-        let isBottomPressed = false
+        let isDownPressed = false
 
         const controlling = (e) => {
             if (e.which == 65 || e.which == 37){
@@ -264,6 +279,14 @@
                 //GO RIGHT
                 isRightPressed = true
                 Player.velocity.X = 5
+            } else if (e.which == 38 || e.which == 87){
+                //GO UP
+                isUpPressed = true
+                Player.velocity.Y = -5
+            } else if (e.which == 40 || e.which == 83){
+                //GO DOWN
+                isDownPressed = true
+                Player.velocity.Y = 5
             } 
         }
             
@@ -276,13 +299,29 @@
                     Player.velocity.X = 0
                     Player.image = ImageFrames.brown[0]
                 }               
-            }else if (e.which == 68 || e.which == 39){
+            } else if (e.which == 68 || e.which == 39){
                 isRightPressed = false
                 if (isLeftPressed) {
                     Player.velocity.X = -5
                 } else {
                     Player.velocity.X = 0
                     Player.image = ImageFrames.brown[25]
+                }             
+            } else if (e.which == 38 || e.which == 87){
+                isUpPressed = false
+                if (isDownPressed) {
+                    Player.velocity.Y = 5
+                } else {
+                    Player.velocity.Y = 0
+                    Player.image = ImageFrames.brown[Player.frame < 13 ? 0 : 25]
+                }             
+            } else if (e.which == 40 || e.which == 83){
+                isDownPressed = false
+                if (isUpPressed) {
+                    Player.velocity.Y = -5
+                } else {
+                    Player.velocity.Y = 0
+                    Player.image = ImageFrames.brown[Player.frame < 13 ? 0 : 25]
                 }             
             }
         }
