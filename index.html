@@ -20,15 +20,17 @@
     <canvas id="canvas"></canvas>
     
     <script>
-        const Canvas = document.getElementById('canvas')
-        const ctx = Canvas.getContext('2d')
+        ////////MEMBUAT OBJEK CANVAS
+        const Canvas = document.getElementById('canvas')    //Objek diambil dari tag html <canvas> yg memiliki id canvas
+        const ctx = Canvas.getContext('2d')                 //object yang mempresentasikan sebuah rendering context yang dua dimensi
 
-        let screenHeight = window.innerHeight
+        let screenHeight = window.innerHeight               //mengatur ukuran media
         let screenWidth = window.innerWidth
 
-        Canvas.width = screenWidth
+        Canvas.width = screenWidth                          //mengatur ukuran canvas
         Canvas.height = screenHeight
 
+        ////////FUNGSI PENGIMPORT GAMBAR SELURUH SET FRAME ANIMASI
         function getFrameSet(color) {
             const frameset = []
             for (let i = 0; i < 26; i++) {
@@ -39,12 +41,13 @@
         }
 
         const ImageFrames = {
+            yellow: getFrameSet('yellow'),
             brown: getFrameSet('brown'),
             gray: getFrameSet('gray'),
-            yellow: getFrameSet('yellow'),
             purple: getFrameSet('purple')
         }
 
+        ////////FUNGSI PENGIMPORT GAMBAR BACKGROUND
         function getImage(source) {
             const image = new Image()
             image.src = source
@@ -57,6 +60,8 @@
             corridor: getImage('img/background/corridor.webp')
         }
 
+        
+        ////////OBJECT PLAYER - YANG BISA DIKENDALIKAN DENGAN KEYBOARD
         function PlayerCharacter() {
             this.width = 145
             this.height = 181
@@ -70,17 +75,18 @@
                 Y : screenHeight - 140 - this.height
             }
             
+            //method ini digunakan untuk merender di canvas
             this.Draw = () => {
+                //bagian ini untuk pergerakan objek dan juga melarang objek bergerak keluar dari sisi layar
                 if (this.Position.X + this.velocity.X > 40 && this.Position.X + this.velocity.X < screenWidth - this.width - 40){    
                     this.Position.X += this.velocity.X
                 }
-
                 if (this.Position.Y + this.velocity.Y > 424 - this.height && this.Position.Y + this.velocity.Y < screenHeight - 109 - 27 - this.height){    
                     this.Position.Y += this.velocity.Y 
                     this.lane = screenHeight - this.height - this.Position.Y - 140
                 }
                 
-                
+                //bagian logic penayangan frame animasi disesuaikan dengan pergerakan objek
                 if (this.velocity.X < 0) {
                     this.frame++
                     if (this.frame < 1 || this.frame > 12) this.frame = 1
@@ -98,20 +104,22 @@
                     if (this.frame < 13 || this.frame > 24) this.frame = 13
 
                 } else this.frame = this.frame < 13 ? 0 : 25
-                
 
+                //merender ke canvas menggunakan ctx 2D
                 ctx.drawImage(this.image[this.frame], this.Position.X, this.Position.Y, this.width, this.height)
             }
         }
 
+        ////////OBJECT NON-PLAYER - FIGUR BERGERAK YANG LEWAT
         function CharacterLewat(color, starting, delay = 0, lane) {
             this.width = 145
             this.height = 181
             this.velocity = 5
             this.frame = 0
-            this.turningArea = Math.random() * screenWidth*2.5 + screenWidth + this.width*2
+            this.turningArea = Math.random() * screenWidth*2 + screenWidth + this.width*2
             this.lane = lane * (screenHeight-424-109-27)
 
+            //switch sesuai warna karakter yg diminta (pengambilan set frame kemudian)
             switch (color) {
                 case 'gray':
                     this.image = ImageFrames.gray
@@ -135,6 +143,7 @@
                 Y : screenHeight - this.height - this.lane - 140
             }
 
+            //muncul dari sebelah mana?
             if(starting == 'left'){
                 this.velocity = 5
                 this.Position.X = -this.width
@@ -143,34 +152,40 @@
                 this.Position.X = screenWidth 
             }
             
+            //men-delay kemunculan
             this.isDelayed = true
-
             setTimeout(() => {
                 this.isDelayed = false
             }, delay)
 
+            //method ini digunakan untuk merender di canvas
             this.Draw = () => {
                 if (!this.isDelayed){
+                    //bagian ini supaya figur bolak balik ke kanan dan kiri (tidak hilang begitu saja)
                     if (this.Position.X + this.velocity < screenWidth/2-this.turningArea/2 || this.Position.X + this.velocity > screenWidth/2 + this.turningArea/2){    
                         this.velocity = -this.velocity
                         this.lane = Math.random() * (screenHeight-424-109-27)
                     }
-
+                    
+                    if(Math.random() < 0.005) this.velocity = -this.velocity
+                    //bagian pergerakan
                     this.Position.X += this.velocity - Player.velocity.X*2
                     this.Position.Y = screenHeight - this.height - this.lane - 140
 
-
+                    //bagian logic penayangan frame animasi disesuaikan dengan pergerakan objek
                     if (this.velocity < 0) {
                         if (this.frame < 1 || this.frame > 12) this.frame = 1
                     } else if (this.velocity > 0) {
                         if (this.frame < 13 || this.frame > 24) this.frame = 13
                     }
 
+                    //merender ke canvas menggunakan ctx 2D
                     ctx.drawImage(this.image[this.frame++], this.Position.X, this.Position.Y, this.width, this.height)
                 }
             }
         }
 
+        ////////BACKGROUND INTERAKTIF - bg terdiri dari tiga bagian: line, iron dan corridor
         const Background = {
             line: function () {
                 this.width = 181
