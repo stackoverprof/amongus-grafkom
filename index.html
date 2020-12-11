@@ -58,7 +58,7 @@
         function PlayerCharacter() {
             this.width = 145
             this.height = 181
-            this.velocity = 0
+            this.velocity = {X: 0, Y: 0}
             this.frame = 0
             this.image = ImageFrames.brown[this.frame]
             
@@ -68,16 +68,16 @@
             }
             
             this.Draw = () => {
-                if (!(this.Position.X + this.velocity < 0 || this.Position.X + this.velocity > screenWidth - this.width )){    
-                    this.Position.X += this.velocity
+                if (!(this.Position.X + this.velocity.X < 0 || this.Position.X + this.velocity.X > screenWidth - this.width )){    
+                    this.Position.X += this.velocity.X
                 }
                 
                 this.Position.Y = screenHeight - 140 - this.height
                 
-                if (this.velocity < 0) {
+                if (this.velocity.X < 0) {
                     if (this.frame < 1 || this.frame > 12) this.frame = 1
                     this.image = ImageFrames.brown[this.frame++]
-                } else if (this.velocity > 0) {
+                } else if (this.velocity.X > 0) {
                     if (this.frame < 13 || this.frame > 24) this.frame = 13
                     this.image = ImageFrames.brown[this.frame++]
                 }
@@ -92,7 +92,7 @@
             this.velocity = 5
             this.frame = 0
             this.turningArea = Math.random() * screenWidth*2.5 + screenWidth + this.width*2
-            this.lane = lane * 60 + 140
+            this.lane = lane * (screenHeight-470-109-27) + 140
 
             switch (color) {
                 case 'gray':
@@ -132,9 +132,10 @@
                 if (!this.isDelayed){
                     if (this.Position.X + this.velocity < screenWidth/2-this.turningArea/2 || this.Position.X + this.velocity > screenWidth/2 + this.turningArea/2){    
                         this.velocity = this.velocity*-1
+                        this.lane = Math.random() * (screenHeight-470-109-27) + 140
                     }
 
-                    this.Position.X += this.velocity - Player.velocity*2
+                    this.Position.X += this.velocity - Player.velocity.X*2
                     this.Position.Y = screenHeight - this.height - this.lane
 
 
@@ -161,7 +162,7 @@
                 }
 
                 this.Draw = () => {
-                    this.Position.X -= Player.velocity*3
+                    this.Position.X -= Player.velocity.X*3
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
@@ -174,16 +175,16 @@
             },
             iron: function () {
                 this.width = 1689
-                this.height = 209
+                this.height = 109
                 this.image = ImageBackground.iron
 
                 this.Position = {
                     X: 0,
-                    Y: screenHeight - this.height + 100
+                    Y: screenHeight - this.height
                 }
 
                 this.Draw = () => {
-                    this.Position.X -= Player.velocity*1.5
+                    this.Position.X -= Player.velocity.X*1.5
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
@@ -195,8 +196,8 @@
                 }
             },
             corridor: function () {
-                this.width = 1949
-                this.height = 539
+                this.width = 1739.27
+                this.height = 481
                 this.image = ImageBackground.corridor
 
                 this.Position = {
@@ -205,7 +206,7 @@
                 }
 
                 this.Draw = () => {
-                    this.Position.X -= Player.velocity*2
+                    this.Position.X -= Player.velocity.X*2
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
@@ -221,12 +222,14 @@
         const Player = new PlayerCharacter()
         const FigurPolisi = new CharacterLewat('gray', 'left', 1000, 0.2)
         const FigurRaja = new CharacterLewat('yellow', 'right', 3500, 1)
+        const FigurWhite = new CharacterLewat('brown', 'left', 3500, 0.5)
         
         const BackgroundObjects = {
             line: new Background.line(),
             iron: new Background.iron(),
             corridor: new Background.corridor()
         }
+        
 
         function Updater() {
             ctx.clearRect(0, 0, screenWidth, screenHeight)
@@ -235,9 +238,13 @@
             BackgroundObjects.iron.Draw()
             BackgroundObjects.line.Draw()
 
-            FigurRaja.Draw()
-            FigurPolisi.Draw()
-            Player.Draw()
+
+            const figures = [FigurRaja, FigurPolisi, FigurWhite, Player]
+
+            figures.sort((a, b) => {return b.lane - a.lane})
+            figures.forEach(figure => {
+                figure.Draw()
+            })
             
         }
         setInterval(Updater, 30)
@@ -245,16 +252,18 @@
         /////////CONTROLLER - KEYBOARD EVENT HANDLER
         let isRightPressed = false
         let isLeftPressed = false
+        let isUpPressed = false
+        let isBottomPressed = false
 
         const controlling = (e) => {
             if (e.which == 65 || e.which == 37){
                 //GO LEFT 
                 isLeftPressed = true
-                Player.velocity = -5
+                Player.velocity.X = -5
             } else if (e.which == 68 || e.which == 39){
                 //GO RIGHT
                 isRightPressed = true
-                Player.velocity = 5
+                Player.velocity.X = 5
             } 
         }
             
@@ -262,17 +271,17 @@
             if (e.which == 65 || e.which == 37){
                 isLeftPressed = false
                 if (isRightPressed) {
-                    Player.velocity = 5
+                    Player.velocity.X = 5
                 } else {
-                    Player.velocity = 0
+                    Player.velocity.X = 0
                     Player.image = ImageFrames.brown[0]
                 }               
             }else if (e.which == 68 || e.which == 39){
                 isRightPressed = false
                 if (isLeftPressed) {
-                    Player.velocity = -5
+                    Player.velocity.X = -5
                 } else {
-                    Player.velocity = 0
+                    Player.velocity.X = 0
                     Player.image = ImageFrames.brown[25]
                 }             
             }
