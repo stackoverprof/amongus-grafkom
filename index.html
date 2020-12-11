@@ -10,6 +10,7 @@
             top: 0;
             width: 100%;
             height: 100%;
+            margin: 0;
         }
     </style>
 </head>
@@ -27,7 +28,7 @@
         canvas.height = screenHeight
         
         const ImageCrew = []
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 26; i++) {
             ImageCrew[i] = new Image()
             ImageCrew[i].src = `img/crewmatesFrame/${i}.png`
             ImageCrew[i].style.opacity = 0.3
@@ -46,9 +47,18 @@
             }
             
             this.Draw = () => {
-                this.frame = this.frame + 1 >= 12 ? 0 : ++this.frame 
+                // this.frame = this.frame + 1 >= 25 ? 0 : ++this.frame 
                 this.Position.X += this.velocity
-                this.image = ImageCrew[this.frame]
+                // this.image = ImageCrew[this.frame]
+                
+                if (this.velocity < 0) {
+                    if (this.frame < 1 || this.frame > 12) this.frame = 1
+                    this.image = ImageCrew[this.frame++]
+                } else if (this.velocity > 0) {
+                    if (this.frame < 13 || this.frame > 24) this.frame = 13
+                    this.image = ImageCrew[this.frame++]
+                }
+
                 ctx.drawImage(this.image, this.Position.X, this.Position.Y, this.width, this.height)
             }
         }
@@ -80,10 +90,20 @@
         const uncontrolling = (e) => {
             if (e.which == 65 || e.which == 37){
                 isLeftPressed = false
-                crewmates.velocity = isRightPressed ? 5 : 0                
+                if (isRightPressed) {
+                    crewmates.velocity = 5
+                } else {
+                    crewmates.velocity = 0
+                    crewmates.image = ImageCrew[0]
+                }               
             }else if (e.which == 68 || e.which == 39){
                 isRightPressed = false
-                crewmates.velocity = isLeftPressed ? -5 : 0
+                if (isLeftPressed) {
+                    crewmates.velocity = -5
+                } else {
+                    crewmates.velocity = 0
+                    crewmates.image = ImageCrew[25]
+                }             
             }
         }
 
