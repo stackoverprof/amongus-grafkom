@@ -40,7 +40,8 @@
         const ImageFrames = {
             brown: getFrameSet('brown'),
             gray: getFrameSet('gray'),
-            yellow: getFrameSet('yellow')
+            yellow: getFrameSet('yellow'),
+            purple: getFrameSet('purple')
         }
 
         function getImage(source) {
@@ -108,6 +109,7 @@
             this.frame = 0
             this.turningArea = Math.random() * screenWidth*2.5 + screenWidth + this.width*2
             this.lane = lane * (screenHeight-424-109-27)
+            this.laneDriver = Math.random() < 0.5 ? 5 : -5
 
             switch (color) {
                 case 'gray':
@@ -118,6 +120,9 @@
                     break            
                 case 'brown':
                     this.image = ImageFrames.brown
+                    break            
+                case 'purple':
+                    this.image = ImageFrames.purple
                     break            
                 default:
                     this.image = ImageFrames.brown
@@ -146,10 +151,15 @@
             this.Draw = () => {
                 if (!this.isDelayed){
                     if (this.Position.X + this.velocity < screenWidth/2-this.turningArea/2 || this.Position.X + this.velocity > screenWidth/2 + this.turningArea/2){    
-                        this.velocity = this.velocity*-1
+                        this.velocity = -this.velocity
                         this.lane = Math.random() * (screenHeight-424-109-27)
                     }
-
+                    
+                    let rand = Math.random()
+                    if(this.laneDriver == 0) this.laneDriver = rand < 0.2 ? (Math.random() < 0.5 ? 5 : -5) : this.laneDriver
+                    else this.laneDriver = rand < 0.1 ? -this.laneDriver : rand < 0.5 ? 0 : this.laneDriver
+                    this.lane += this.laneDriver
+                    
                     this.Position.X += this.velocity - Player.velocity.X*2
                     this.Position.Y = screenHeight - this.height - this.lane - 140
 
@@ -237,7 +247,7 @@
         const Player = new PlayerCharacter()
         const FigurPolisi = new CharacterLewat('gray', 'left', 1000, 0)
         const FigurRaja = new CharacterLewat('yellow', 'right', 3500, 1)
-        const FigurWhite = new CharacterLewat('brown', 'left', 3500, 0.5)
+        const FigurTerong = new CharacterLewat('purple', 'left', 3500, 0.5)
         
         const BackgroundObjects = {
             line: new Background.line(),
@@ -254,7 +264,7 @@
             BackgroundObjects.line.Draw()
 
 
-            const figures = [FigurRaja, FigurPolisi, FigurWhite, Player]
+            const figures = [FigurRaja, FigurPolisi, FigurTerong, Player]
 
             figures.sort((a, b) => {return b.lane - a.lane})
             figures.forEach(figure => {
