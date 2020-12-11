@@ -11,6 +11,7 @@
             width: 100%;
             height: 100%;
             margin: 0;
+            background: #4D5258;
         }
     </style>
 </head>
@@ -19,20 +20,19 @@
     
     <script>
         const Canvas = document.getElementById('canvas')
-        const ctx = canvas.getContext('2d')
+        const ctx = Canvas.getContext('2d')
 
         let screenHeight = window.innerHeight
         let screenWidth = window.innerWidth
 
-        canvas.width = screenWidth
-        canvas.height = screenHeight
+        Canvas.width = screenWidth
+        Canvas.height = screenHeight
 
-        function getFrameSet (color) {
+        function getFrameSet(color) {
             const frameset = []
             for (let i = 0; i < 26; i++) {
                 frameset[i] = new Image()
                 frameset[i].src = `img/frameset/${color}/${i}.png`
-                frameset[i].style.opacity = 0.3
             }
             return frameset
         }
@@ -41,6 +41,18 @@
             brown: getFrameSet('brown'),
             gray: getFrameSet('gray'),
             yellow: getFrameSet('yellow')
+        }
+
+        function getImage(source) {
+            const image = new Image()
+            image.src = source
+            return image
+        }
+
+        const ImageBackground = {
+            line: getImage('img/background/line.png'),
+            iron: getImage('img/background/iron.png'),
+            corridor: getImage('img/background/corridor.webp')
         }
 
         function PlayerCharacter() {
@@ -52,15 +64,15 @@
             
             this.Position = {
                 X : screenWidth/2-this.width/2,
-                Y : screenHeight-this.height-80 
+                Y : screenHeight - 140 - this.height
             }
             
             this.Draw = () => {
-                if (!(this.Position.X + this.velocity < -42 || this.Position.X + this.velocity > screenWidth - this.width + 42)){    
+                if (!(this.Position.X + this.velocity < 0 || this.Position.X + this.velocity > screenWidth - this.width )){    
                     this.Position.X += this.velocity
                 }
                 
-                this.Position.Y = screenHeight - this.height - 80
+                this.Position.Y = screenHeight - 140 - this.height
                 
                 if (this.velocity < 0) {
                     if (this.frame < 1 || this.frame > 12) this.frame = 1
@@ -80,7 +92,7 @@
             this.velocity = 5
             this.frame = 0
             this.turningArea = Math.random() * screenWidth*2.5 + screenWidth + this.width*2
-            this.lane = lane * 100 + 100
+            this.lane = lane * 60 + 140
 
             switch (color) {
                 case 'gray':
@@ -93,7 +105,7 @@
                     this.image = ImageFrames.brown
                     break            
                 default:
-                    this.image = ImageFrames.gray
+                    this.image = ImageFrames.brown
                     break
             }
             
@@ -122,7 +134,7 @@
                         this.velocity = this.velocity*-1
                     }
 
-                    this.Position.X += this.velocity
+                    this.Position.X += this.velocity - Player.velocity*2
                     this.Position.Y = screenHeight - this.height - this.lane
 
 
@@ -137,20 +149,96 @@
             }
         }
 
+        const Background = {
+            line: function () {
+                this.width = 181
+                this.height = 27
+                this.image = ImageBackground.line
 
+                this.Position = {
+                    X: 0,
+                    Y: screenHeight - 100 - this.height
+                }
 
+                this.Draw = () => {
+                    this.Position.X -= Player.velocity*3
+                    let i = 0
+                    do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
+                    while (i++*this.width + this.Position.X < screenWidth ) 
+                    
+                    let j = 0
+                    while (this.Position.X - this.width*j > 0) {
+                        ctx.drawImage(this.image, this.Position.X - this.width*++j, this.Position.Y, this.width, this.height)
+                    }
+                }
+            },
+            iron: function () {
+                this.width = 1689
+                this.height = 209
+                this.image = ImageBackground.iron
 
+                this.Position = {
+                    X: 0,
+                    Y: screenHeight - this.height + 100
+                }
 
+                this.Draw = () => {
+                    this.Position.X -= Player.velocity*1.5
+                    let i = 0
+                    do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
+                    while (i++*this.width + this.Position.X < screenWidth ) 
+                    
+                    let j = 0
+                    while (this.Position.X - this.width*j > 0) {
+                        ctx.drawImage(this.image, this.Position.X - this.width*++j, this.Position.Y, this.width, this.height)
+                    }
+                }
+            },
+            corridor: function () {
+                this.width = 1949
+                this.height = 539
+                this.image = ImageBackground.corridor
+
+                this.Position = {
+                    X: 0,
+                    Y: 0
+                }
+
+                this.Draw = () => {
+                    this.Position.X -= Player.velocity*2
+                    let i = 0
+                    do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
+                    while (i++*this.width + this.Position.X < screenWidth ) 
+                    
+                    let j = 0
+                    while (this.Position.X - this.width*j > 0) {
+                        ctx.drawImage(this.image, this.Position.X - this.width*++j, this.Position.Y, this.width, this.height)
+                    }
+                }
+            },
+        }
         
         const Player = new PlayerCharacter()
-        const FigurPolisi = new CharacterLewat('gray', 'left', 1000, 0)
+        const FigurPolisi = new CharacterLewat('gray', 'left', 1000, 0.2)
         const FigurRaja = new CharacterLewat('yellow', 'right', 3500, 1)
         
+        const BackgroundObjects = {
+            line: new Background.line(),
+            iron: new Background.iron(),
+            corridor: new Background.corridor()
+        }
+
         function Updater() {
             ctx.clearRect(0, 0, screenWidth, screenHeight)
+
+            BackgroundObjects.corridor.Draw()
+            BackgroundObjects.iron.Draw()
+            BackgroundObjects.line.Draw()
+
             FigurRaja.Draw()
             FigurPolisi.Draw()
             Player.Draw()
+            
         }
         setInterval(Updater, 30)
 
@@ -196,8 +284,8 @@
         const reportWindowSize = () => {
             screenWidth = window.innerWidth
             screenHeight = window.innerHeight
-            canvas.width = screenWidth
-            canvas.height = screenHeight
+            Canvas.width = screenWidth
+            Canvas.height = screenHeight
             
             if(Player.Position.X > screenWidth-200) Player.Position.X = screenWidth-200
         
