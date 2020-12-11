@@ -109,7 +109,6 @@
             this.frame = 0
             this.turningArea = Math.random() * screenWidth*2.5 + screenWidth + this.width*2
             this.lane = lane * (screenHeight-424-109-27)
-            this.laneDriver = Math.random() < 0.5 ? 5 : -5
 
             switch (color) {
                 case 'gray':
@@ -154,12 +153,7 @@
                         this.velocity = -this.velocity
                         this.lane = Math.random() * (screenHeight-424-109-27)
                     }
-                    
-                    let rand = Math.random()
-                    if(this.laneDriver == 0) this.laneDriver = rand < 0.2 ? (Math.random() < 0.5 ? 5 : -5) : this.laneDriver
-                    else this.laneDriver = rand < 0.1 ? -this.laneDriver : rand < 0.5 ? 0 : this.laneDriver
-                    this.lane += this.laneDriver
-                    
+
                     this.Position.X += this.velocity - Player.velocity.X*2
                     this.Position.Y = screenHeight - this.height - this.lane - 140
 
