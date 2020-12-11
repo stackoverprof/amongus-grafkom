@@ -14,6 +14,7 @@
             background: #4D5258;
         }
     </style>
+
 </head>
 <body>
     <canvas id="canvas"></canvas>
@@ -62,7 +63,7 @@
             this.velocity = {X: 0, Y: 0}
             this.frame = 0
             this.lane = 0
-            this.image = ImageFrames.brown[this.frame]
+            this.image = ImageFrames.brown
             
             this.Position = {
                 X : screenWidth/2-this.width/2,
@@ -70,35 +71,36 @@
             }
             
             this.Draw = () => {
-                if (!(this.Position.X + this.velocity.X < 0 || this.Position.X + this.velocity.X > screenWidth - this.width )){    
+                if (this.Position.X + this.velocity.X > 40 && this.Position.X + this.velocity.X < screenWidth - this.width - 40){    
                     this.Position.X += this.velocity.X
                 }
 
-                if (!(this.Position.Y + this.velocity.Y < 424 - this.height || this.Position.Y + this.velocity.Y > screenHeight - 109 - 27 - this.height)){    
+                if (this.Position.Y + this.velocity.Y > 424 - this.height && this.Position.Y + this.velocity.Y < screenHeight - 109 - 27 - this.height){    
                     this.Position.Y += this.velocity.Y 
                     this.lane = screenHeight - this.height - this.Position.Y - 140
                 }
                 
                 
                 if (this.velocity.X < 0) {
-                    this.image = ImageFrames.brown[this.frame++]
+                    this.frame++
                     if (this.frame < 1 || this.frame > 12) this.frame = 1
+
                 } else if (this.velocity.X > 0) {
-                    this.image = ImageFrames.brown[this.frame++]
+                    this.frame++
                     if (this.frame < 13 || this.frame > 24) this.frame = 13
-                }
 
-                if (this.velocity.Y != 0 && this.velocity.X == 0) {
-                    if (this.frame < 13) {
-                        this.image = ImageFrames.brown[this.frame++]
-                        if (this.frame < 1 || this.frame > 12) this.frame = 1
-                    } else {
-                        this.image = ImageFrames.brown[this.frame++]
-                        if (this.frame < 13 || this.frame > 24) this.frame = 13
-                    }
-                } 
+                } else if (this.velocity.Y != 0 && this.frame < 13) {
+                    this.frame++
+                    if (this.frame < 1 || this.frame > 12) this.frame = 1
 
-                ctx.drawImage(this.image, this.Position.X, this.Position.Y, this.width, this.height)
+                } else if (this.velocity.Y != 0 && this.frame >= 13){
+                    this.frame++
+                    if (this.frame < 13 || this.frame > 24) this.frame = 13
+
+                } else this.frame = this.frame < 13 ? 0 : 25
+                
+
+                ctx.drawImage(this.image[this.frame], this.Position.X, this.Position.Y, this.width, this.height)
             }
         }
 
@@ -177,11 +179,13 @@
 
                 this.Position = {
                     X: 0,
-                    Y: screenHeight - 100 - this.height
+                    Y: screenHeight - 109 - this.height
                 }
 
                 this.Draw = () => {
                     this.Position.X -= Player.velocity.X*3
+                    this.Position.Y = screenHeight - 100 - this.height
+
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
@@ -204,6 +208,8 @@
 
                 this.Draw = () => {
                     this.Position.X -= Player.velocity.X*1.5
+                    this.Position.Y = screenHeight - this.height
+
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
@@ -226,6 +232,7 @@
 
                 this.Draw = () => {
                     this.Position.X -= Player.velocity.X*2
+
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
@@ -301,7 +308,7 @@
                     Player.velocity.X = 5
                 } else {
                     Player.velocity.X = 0
-                    Player.image = ImageFrames.brown[0]
+                    // Player.frame = 0
                 }               
             } else if (e.which == 68 || e.which == 39){
                 isRightPressed = false
@@ -309,7 +316,7 @@
                     Player.velocity.X = -5
                 } else {
                     Player.velocity.X = 0
-                    Player.image = ImageFrames.brown[25]
+                    // Player.frame = 25
                 }             
             } else if (e.which == 38 || e.which == 87){
                 isUpPressed = false
@@ -317,7 +324,7 @@
                     Player.velocity.Y = 5
                 } else {
                     Player.velocity.Y = 0
-                    Player.image = ImageFrames.brown[Player.frame < 13 ? 0 : 25]
+                    // Player.frame = Player.frame < 13 ? 0 : 25
                 }             
             } else if (e.which == 40 || e.which == 83){
                 isDownPressed = false
@@ -325,7 +332,7 @@
                     Player.velocity.Y = -5
                 } else {
                     Player.velocity.Y = 0
-                    Player.image = ImageFrames.brown[Player.frame < 13 ? 0 : 25]
+                    // Player.frame = Player.frame < 13 ? 0 : 25
                 }             
             }
         }
