@@ -88,22 +88,26 @@
                 
                 //bagian logic penayangan frame animasi disesuaikan dengan pergerakan objek
                 if (this.velocity.X < 0) {
+                    //ketika gerak ke kiri
                     this.frame++
                     if (this.frame < 1 || this.frame > 12) this.frame = 1
-
+                    
                 } else if (this.velocity.X > 0) {
+                    //ketika gerak ke kanna
                     this.frame++
                     if (this.frame < 13 || this.frame > 24) this.frame = 13
 
                 } else if (this.velocity.Y != 0 && this.frame < 13) {
+                    //ketika gerak atas/bawah dan sedang menghadap kiri
                     this.frame++
                     if (this.frame < 1 || this.frame > 12) this.frame = 1
 
                 } else if (this.velocity.Y != 0 && this.frame >= 13){
+                    //ketika gerak atas/bawah dan sedang menghadap kanan
                     this.frame++
                     if (this.frame < 13 || this.frame > 24) this.frame = 13
 
-                } else this.frame = this.frame < 13 ? 0 : 25
+                } else this.frame = this.frame < 13 ? 0 : 25 //ketika diam
 
                 //merender ke canvas menggunakan ctx 2D
                 ctx.drawImage(this.image[this.frame], this.Position.X, this.Position.Y, this.width, this.height)
@@ -111,12 +115,12 @@
         }
 
         ////////OBJECT NON-PLAYER - FIGUR BERGERAK YANG LEWAT
-        function CharacterLewat(color, starting, delay = 0, lane) {
+        function CharacterPasif(color, starting, delay = 0, lane) {
             this.width = 145
             this.height = 181
             this.velocity = 5
             this.frame = 0
-            this.turningArea = Math.random() * screenWidth*2 + screenWidth + this.width*2
+            this.turningArea = Math.random() * screenWidth + screenWidth
             this.lane = lane * (screenHeight-424-109-27)
 
             //switch sesuai warna karakter yg diminta (pengambilan set frame kemudian)
@@ -167,7 +171,7 @@
                         this.lane = Math.random() * (screenHeight-424-109-27)
                     }
                     
-                    if(Math.random() < 0.005) this.velocity = -this.velocity
+                    if(Math.random() < 0.0025) this.velocity = -this.velocity
                     //bagian pergerakan
                     this.Position.X += this.velocity - Player.velocity.X*2
                     this.Position.Y = screenHeight - this.height - this.lane - 140
@@ -201,10 +205,14 @@
                     this.Position.X -= Player.velocity.X*3
                     this.Position.Y = screenHeight - 100 - this.height
 
+                    //let do while dibawah berfungsi untuk infinity loop ke kanan dan ke kiri sesuai dengan pergeseran screen
+                    //ini untuk generate loop ke kanan
+                    
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
-                    
+
+                    //sedangkan ini untuk generate loop ke kiri
                     let j = 0
                     while (this.Position.X - this.width*j > 0) {
                         ctx.drawImage(this.image, this.Position.X - this.width*++j, this.Position.Y, this.width, this.height)
@@ -225,10 +233,14 @@
                     this.Position.X -= Player.velocity.X*1.5
                     this.Position.Y = screenHeight - this.height
 
+                    //let do while dibawah berfungsi untuk infinity loop ke kanan dan ke kiri sesuai dengan pergeseran screen
+                    //ini untuk generate loop ke kanan
+
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
                     
+                    //sedangkan ini untuk generate loop ke kiri
                     let j = 0
                     while (this.Position.X - this.width*j > 0) {
                         ctx.drawImage(this.image, this.Position.X - this.width*++j, this.Position.Y, this.width, this.height)
@@ -248,10 +260,15 @@
                 this.Draw = () => {
                     this.Position.X -= Player.velocity.X*2
 
+                    //let do while dibawah berfungsi untuk infinity loop ke kanan dan ke kiri sesuai dengan pergeseran screen
+                    //ini untuk generate loop ke kanan
+
+
                     let i = 0
                     do ctx.drawImage(this.image, this.Position.X + this.width*i, this.Position.Y, this.width, this.height)
                     while (i++*this.width + this.Position.X < screenWidth ) 
                     
+                    //sedangkan ini untuk generate loop ke kiri
                     let j = 0
                     while (this.Position.X - this.width*j > 0) {
                         ctx.drawImage(this.image, this.Position.X - this.width*++j, this.Position.Y, this.width, this.height)
@@ -259,36 +276,45 @@
                 }
             },
         }
-        
+
+        ////////INISIASI SETIAP OBJEK (Player, Figur2, Background2)
+        // inisiasi player (yang coklat)
         const Player = new PlayerCharacter()
-        const FigurPolisi = new CharacterLewat('gray', 'left', 1000, 0)
-        const FigurRaja = new CharacterLewat('yellow', 'right', 3500, 1)
-        const FigurTerong = new CharacterLewat('purple', 'left', 3500, 0.5)
+
+        // inisiasi figur = karakter bergerak non player
+        const Figur = {
+            Polisi : new CharacterPasif('gray', 'left', 1000, 0),
+            Raja : new CharacterPasif('yellow', 'right', 3500, 1),
+            Terong : new CharacterPasif('purple', 'left', 3500, 0.5)
+        }
         
+        //inisiasi background interaktif
         const BackgroundObjects = {
             line: new Background.line(),
             iron: new Background.iron(),
             corridor: new Background.corridor()
         }
         
-
-        function Updater() {
+        //FUNGSI UTAMA - UPDATER UNTUK SCREEN (dieksekusi setiap interval 30ms)
+        const FrameRunner = () => {
+            //membersihkan canvas sebelumnya
             ctx.clearRect(0, 0, screenWidth, screenHeight)
 
+            //merender ulang background
             BackgroundObjects.corridor.Draw()
             BackgroundObjects.iron.Draw()
             BackgroundObjects.line.Draw()
 
-
-            const figures = [FigurRaja, FigurPolisi, FigurTerong, Player]
-
+            //merender ulang figur2 dan player sesuai urutan Z-Axis nya
+            //yg memiliki properti .lane atau .Position.Y paling bawah (terbesar) akan di render sebagai yg terdepat
+            const figures = [Figur.Raja, Figur.Polisi, Figur.Terong, Player]
             figures.sort((a, b) => {return b.lane - a.lane})
             figures.forEach(figure => {
                 figure.Draw()
             })
-            
         }
-        setInterval(Updater, 30)
+        setInterval(FrameRunner, 30)
+
 
         /////////CONTROLLER - KEYBOARD EVENT HANDLER
         let isRightPressed = false
@@ -296,6 +322,7 @@
         let isUpPressed = false
         let isDownPressed = false
 
+        //ketika ditekan (press down) jalankan ini
         const controlling = (e) => {
             if (e.which == 65 || e.which == 37){
                 //GO LEFT 
@@ -316,45 +343,38 @@
             } 
         }
             
+        //ketika jari diangkat jalankan ini
         const uncontrolling = (e) => {
             if (e.which == 65 || e.which == 37){
+                //GO LEFT 
                 isLeftPressed = false
-                if (isRightPressed) {
-                    Player.velocity.X = 5
-                } else {
-                    Player.velocity.X = 0
-                    // Player.frame = 0
-                }               
+                if (isRightPressed) Player.velocity.X = 5
+                else Player.velocity.X = 0
+
             } else if (e.which == 68 || e.which == 39){
+                //GO RIGHT
                 isRightPressed = false
-                if (isLeftPressed) {
-                    Player.velocity.X = -5
-                } else {
-                    Player.velocity.X = 0
-                    // Player.frame = 25
-                }             
+                if (isLeftPressed) Player.velocity.X = -5
+                else Player.velocity.X = 0     
+
             } else if (e.which == 38 || e.which == 87){
+                //GO UP
                 isUpPressed = false
-                if (isDownPressed) {
-                    Player.velocity.Y = 5
-                } else {
-                    Player.velocity.Y = 0
-                    // Player.frame = Player.frame < 13 ? 0 : 25
-                }             
+                if (isDownPressed) Player.velocity.Y = 5
+                else Player.velocity.Y = 0
+
             } else if (e.which == 40 || e.which == 83){
+                //GO DOWN
                 isDownPressed = false
-                if (isUpPressed) {
-                    Player.velocity.Y = -5
-                } else {
-                    Player.velocity.Y = 0
-                    // Player.frame = Player.frame < 13 ? 0 : 25
-                }             
+                if (isUpPressed) Player.velocity.Y = -5
+                else Player.velocity.Y = 0           
             }
         }
-
+        //menambah event listener pada ketikan keyboard
         document.addEventListener('keydown', controlling)
         document.addEventListener('keyup', uncontrolling)
 
+        //MENHANDLE PERUBAHAN UKURAN SCREEN
         const reportWindowSize = () => {
             screenWidth = window.innerWidth
             screenHeight = window.innerHeight
@@ -362,11 +382,8 @@
             Canvas.height = screenHeight
             
             if(Player.Position.X > screenWidth-200) Player.Position.X = screenWidth-200
-        
         }
         window.addEventListener('resize', reportWindowSize)
-        
-
     </script>
 </body>
 </html>
