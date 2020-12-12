@@ -72,44 +72,46 @@
             
             this.Position = {
                 X : screenWidth/2-this.width/2,
-                Y : screenHeight - 140 - this.height
+                Y : screenHeight - 129 - this.height
             }
-            
-            //method ini digunakan untuk merender di canvas
-            this.Draw = () => {
-                //bagian ini untuk pergerakan objek dan juga melarang objek bergerak keluar dari sisi layar
+
+            this.Move = () => {
+                //Handle perubahan posisi (gerak) //Melarang Player keluar dari sisi layar
                 if (this.Position.X + this.velocity.X > 40 && this.Position.X + this.velocity.X < screenWidth - this.width - 40){    
                     this.Position.X += this.velocity.X
                 }
-                if (this.Position.Y + this.velocity.Y > 424 - this.height && this.Position.Y + this.velocity.Y < screenHeight - 109 - 27 - this.height){    
+                if (this.Position.Y + this.velocity.Y > 411 - this.height && this.Position.Y + this.velocity.Y < screenHeight - 98 - 27 - this.height){    
                     this.Position.Y += this.velocity.Y 
-                    this.lane = screenHeight - this.height - this.Position.Y - 140
+                    this.lane = screenHeight - this.height - this.Position.Y - 129 - 8
                 }
-                
-                //bagian logic penayangan frame animasi disesuaikan dengan pergerakan objek
-                if (this.velocity.X < 0) {
-                    //ketika gerak ke kiri
-                    this.frame++
-                    if (this.frame < 1 || this.frame > 12) this.frame = 1
-                    
-                } else if (this.velocity.X > 0) {
-                    //ketika gerak ke kanan
-                    this.frame++
-                    if (this.frame < 13 || this.frame > 24) this.frame = 13
+            }
 
-                } else if (this.velocity.Y != 0 && this.frame < 13) {
-                    //ketika gerak atas/bawah dan sedang menghadap kiri
+            this.Framer = () => {
+                let isMoving = this.velocity.X != 0 || this.velocity.Y != 0         //Logic penanyangan frame animasi disesuaikan pada this.velocity
+
+                if (isMoving) {
                     this.frame++
-                    if (this.frame < 1 || this.frame > 12) this.frame = 1
-
-                } else if (this.velocity.Y != 0 && this.frame >= 13){
-                    //ketika gerak atas/bawah dan sedang menghadap kanan
-                    this.frame++
-                    if (this.frame < 13 || this.frame > 24) this.frame = 13
-
-                } else this.frame = this.frame < 13 ? 0 : 25 //ketika diam
-
-                //merender ke canvas menggunakan ctx 2D
+                    console.log(this.frame)
+                    if (this.velocity.X < 0 &&                                      //ketika gerak ke kiri
+                        (this.frame < 1 || this.frame > 12)) 
+                        this.frame = 1
+                    else if (this.velocity.X > 0 &&                                 //ketika gerak ke kanan
+                        (this.frame < 13 || this.frame > 24)) 
+                        this.frame = 13
+                    else if ((this.velocity.Y != 0 && this.frame <= 13) &&           //ketika gerak atas/bawah dan sedang menghadap kiri
+                        (this.frame < 1 || this.frame > 12)) 
+                        this.frame = 1
+                    else if ((this.velocity.Y != 0 && this.frame > 13) &&          //ketika gerak atas/bawah dan sedang menghadap kanan
+                        (this.frame < 13 || this.frame > 24)) 
+                        this.frame = 13
+                } else this.frame = this.frame < 13 ? 0 : 25                        //ketika diam
+            }
+            
+            this.Draw = () => {
+                //Method ini digunakan untuk merender di canvas
+                this.Move()
+                this.Framer()
+                //Merender ke canvas menggunakan ctx 2D
                 ctx.drawImage(this.image[this.frame], this.Position.X, this.Position.Y, this.width, this.height)
             }
         }
@@ -118,10 +120,10 @@
         function CharacterPasif(color, starting, delay = 0, lane) {
             this.width = 145
             this.height = 181
-            this.velocity = 5
+            this.velocity = starting == 'left' ? 5 : -5
             this.frame = 0
-            this.turningArea = Math.random() * screenWidth + screenWidth
-            this.lane = lane * (screenHeight-424-109-27)
+            this.turningArea = Math.random() * screenWidth + screenWidth + this.width*2
+            this.lane = lane * (screenHeight-411-98-27)
 
             //switch sesuai warna karakter yg diminta (untuk memilih mengambil frame set animasi yang mana)
             switch (color) {
@@ -143,17 +145,14 @@
             }
             
             this.Position = {
-                X : -this.width,
-                Y : screenHeight - this.height - this.lane - 140
+                X : starting == 'left' ?  -this.width : screenWidth,
+                Y : screenHeight - this.height - this.lane - 129
             }
 
-            //muncul dari sebelah mana?
-            if(starting == 'left'){
-                this.velocity = 5
-                this.Position.X = -this.width
-            } else if (starting == 'right'){
-                this.velocity = -5
-                this.Position.X = screenWidth 
+            this.Move = () => {
+                //bagian pergerakan
+                this.Position.X += this.velocity - Player.velocity.X*2         
+                this.Position.Y = screenHeight - this.height - this.lane - 129
             }
             
             //men-delay kemunculan
@@ -162,29 +161,32 @@
                 this.isDelayed = false
             }, delay)
 
+            this.Framer = () => {                                           //Logic penanyangan frame animasi disesuaikan pada this.velocity
+                if (this.velocity < 0 && 
+                    (this.frame < 1 || this.frame > 12))                    //Gerak ke kiri
+                    this.frame = 1
+                else if (this.velocity > 0 &&                             //Gerak ke kanan
+                    (this.frame < 13 || this.frame > 24)) 
+                    this.frame = 13
+            }
+
             //method ini digunakan untuk merender di canvas
             this.Draw = () => {
                 if (!this.isDelayed){
                     //bagian ini supaya figur bolak balik ke kanan dan kiri (tidak hilang begitu saja)
-                    if (this.Position.X + this.velocity < screenWidth/2-this.turningArea/2 || this.Position.X + this.velocity > screenWidth/2 + this.turningArea/2){    
-                        this.velocity = -this.velocity
-                        this.lane = Math.random() * (screenHeight-424-109-27)
+                    if (this.Position.X + this.velocity < screenWidth/2-this.turningArea/2){    
+                        this.velocity = 5
+                        this.lane = Math.random() * (screenHeight-411-98-27)
+                    } else if (this.Position.X + this.velocity > screenWidth/2 + this.turningArea/2){
+                        this.velocity = -5
+                        this.lane = Math.random() * (screenHeight-411-98-27)
                     }
 
                     //memberi kemungkinan kecil untuk berbalik arah
-                    if(Math.random() < 0.0025) this.velocity = -this.velocity       
-
-                    //bagian pergerakan
-                    this.Position.X += this.velocity - Player.velocity.X*2          
-                    this.Position.Y = screenHeight - this.height - this.lane - 140
-
-                    //bagian logic penayangan frame animasi disesuaikan dengan pergerakan objek
-                    if (this.velocity < 0) {
-                        if (this.frame < 1 || this.frame > 12) this.frame = 1
-                    } else if (this.velocity > 0) {
-                        if (this.frame < 13 || this.frame > 24) this.frame = 13
-                    }
-
+                    if(Math.random() < 0.0025) this.velocity = -this.velocity  
+                         
+                    this.Move()
+                    this.Framer()
                     //merender ke canvas menggunakan ctx 2D
                     ctx.drawImage(this.image[this.frame++], this.Position.X, this.Position.Y, this.width, this.height)
                 }
@@ -200,12 +202,12 @@
 
                 this.Position = {
                     X: 0,
-                    Y: screenHeight - 109 - this.height
+                    Y: screenHeight - 98 - this.height
                 }
 
                 this.Draw = () => {
                     this.Position.X -= Player.velocity.X*3
-                    this.Position.Y = screenHeight - 100 - this.height
+                    this.Position.Y = screenHeight - 91 - this.height
 
                     //let do while dibawah berfungsi untuk infinity loop ke kanan dan ke kiri sesuai dengan pergeseran screen
                     //ini untuk generate loop ke kanan
@@ -222,8 +224,8 @@
                 }
             },
             iron: function () {
-                this.width = 1689
-                this.height = 109
+                this.width = 1518.55
+                this.height = 98
                 this.image = ImageBackground.iron
 
                 this.Position = {
@@ -232,7 +234,7 @@
                 }
 
                 this.Draw = () => {
-                    this.Position.X -= Player.velocity.X*1.5
+                    this.Position.X -= Player.velocity.X*1.
                     this.Position.Y = screenHeight - this.height
 
                     //let do while dibawah berfungsi untuk infinity loop ke kanan dan ke kiri sesuai dengan pergeseran screen
@@ -250,8 +252,8 @@
                 }
             },
             corridor: function () {
-                this.width = 1739.27
-                this.height = 481
+                this.width = 1692.26
+                this.height = 468
                 this.image = ImageBackground.corridor
 
                 this.Position = {
@@ -383,7 +385,11 @@
             Canvas.width = screenWidth
             Canvas.height = screenHeight
             
-            if(Player.Position.X > screenWidth-200) Player.Position.X = screenWidth-200
+            console.log(Player.Position.Y)
+            console.log(screenHeight - Player.height - 129)
+            if(Player.Position.Y > screenHeight - Player.height - 129 || Player.Position.Y < 411 - Player.height) {
+                Player.Position.Y = screenHeight - Player.height - 129
+            }
         }
         window.addEventListener('resize', reportWindowSize)
     </script>
