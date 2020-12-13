@@ -278,18 +278,18 @@
             },
         }
 
-        ////////INISIASI SETIAP OBJEK (Player, Figur2, Background2)
-        // inisiasi player (yang coklat)
+        ////////INSTANSIASI SETIAP OBJEK (Player, Figur2, Background2)
+        //Instansiasi player (yang coklat)
         const Player = new PlayerCharacter()
 
-        // inisiasi figur = karakter bergerak non player
+        //Instansiasi figur = karakter bergerak non player
         const Figur = {
             Polisi : new CharacterPasif('gray', 'left', 1000, 0),
             Raja : new CharacterPasif('yellow', 'right', 3500, 1),
             Terong : new CharacterPasif('purple', 'left', 3500, 0.5)
         }
         
-        //inisiasi background interaktif
+        //Instansiasi background interaktif
         const BackgroundObjects = {
             line: new Background.line(),
             iron: new Background.iron(),
