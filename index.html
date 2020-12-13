@@ -54,7 +54,8 @@
         const ImageBackground = {
             line: getImage('img/background/line.png'),
             iron: getImage('img/background/iron.png'),
-            corridor: getImage('img/background/corridor.webp')
+            corridor: getImage('img/background/corridor.webp'),
+            labelNama: getImage('img/nama.png')
         }
 
         
@@ -231,7 +232,7 @@
                 }
 
                 this.Draw = () => {
-                    this.Position.X -= Player.velocity.X*1.
+                    this.Position.X -= Player.velocity.X
                     this.Position.Y = screenHeight - this.height
 
                     //let do while dibawah berfungsi untuk infinity loop ke kanan dan ke kiri sesuai dengan pergeseran screen
@@ -276,6 +277,22 @@
                     }
                 }
             },
+            labelNama: function () {
+                this.width = 375
+                this.height = 82
+                this.image = ImageBackground.labelNama
+
+                this.Position = {
+                    X: 892,
+                    Y: 58
+                }
+
+                this.Draw = () => {
+                    this.Position.X -= Player.velocity.X*2.5
+
+                    ctx.drawImage(this.image, this.Position.X, this.Position.Y, this.width, this.height)
+                }
+            },
         }
 
         ////////INSTANSIASI SETIAP OBJEK (Player, Figur2, Background2)
@@ -293,8 +310,10 @@
         const BackgroundObjects = {
             line: new Background.line(),
             iron: new Background.iron(),
-            corridor: new Background.corridor()
+            corridor: new Background.corridor(),
+            labelNama: new Background.labelNama()
         }
+
         
         //FUNGSI UTAMA - UPDATER UNTUK SCREEN (dieksekusi setiap interval 30ms)
         const FrameRunner = () => {
@@ -305,6 +324,7 @@
             BackgroundObjects.corridor.Draw()
             BackgroundObjects.iron.Draw()
             BackgroundObjects.line.Draw()
+            BackgroundObjects.labelNama.Draw()
 
             //merender ulang figur2 dan player sesuai urutan Z-Axis nya
             //yg memiliki properti .lane atau .Position.Y paling bawah (terbesar) akan di render sebagai yg terdepat
