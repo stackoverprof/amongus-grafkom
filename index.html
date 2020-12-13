@@ -350,25 +350,25 @@
         //ketika jari diangkat jalankan ini
         const uncontrolling = (e) => {
             if (e.which == 65 || e.which == 37){
-                //GO LEFT 
+                //UN-GO LEFT 
                 isLeftPressed = false
                 if (isRightPressed) Player.velocity.X = 5
                 else Player.velocity.X = 0
 
             } else if (e.which == 68 || e.which == 39){
-                //GO RIGHT
+                //UN-GO RIGHT
                 isRightPressed = false
                 if (isLeftPressed) Player.velocity.X = -5
                 else Player.velocity.X = 0     
 
             } else if (e.which == 38 || e.which == 87){
-                //GO UP
+                //UN-GO UP
                 isUpPressed = false
                 if (isDownPressed) Player.velocity.Y = 5
                 else Player.velocity.Y = 0
 
             } else if (e.which == 40 || e.which == 83){
-                //GO DOWN
+                //UN-GO DOWN
                 isDownPressed = false
                 if (isUpPressed) Player.velocity.Y = -5
                 else Player.velocity.Y = 0           
